@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktive Übung: Stromdurchflossener Leiter</title>
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #1e293b;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+        .task-box {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 5px solid #2563eb;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .interactive-box {
+            background-color: #0f172a;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .slider-group {
+            margin: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+        input[type=range] { width: 55%; }
+        #canvas-container { margin-top: 20px; background: white; border-radius: 4px; padding: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="task-box">
+        <h2 style="margin-top:0; color:#1e3a8a;">Aufgabe 18: Magnetfeld eines Leiters</h2>
+        <p>Ein Leiter (Radius \( R \)) hat eine linear ansteigende Stromdichte von \( j_0 \) in der Mitte bis \( j(R) \) am Rand. Die magnetische Feldstärke ist gegeben durch:</p>
+        <p><strong>Innen (\( r \le R \)):</strong> \( H_i(r) = rac{j_0}{2}r + rac{j(R)-j_0}{3R}r^2 \)</p>
+        <p><strong>Außen (\( r \ge R \)):</strong> \( H_a(r) = rac{R^2}{r} \left[ rac{j_0}{6} + rac{j(R)}{3} 
+ight] \)</p>
+        <p><em>Untersuchen Sie in der Simulation, wie sich die Profilform (Parabel vs. Hyperbel) ändert, wenn die Randstromdichte viel größer als die innere Stromdichte wird.</em></p>
+    </div>
+
+    <div class="interactive-box">
+        <h3 style="margin-top:0;">Digitale Simulation: \( H(r) \)-Feld</h3>
+        
+        <div class="slider-group">
+            <label>Radius \( R \) (mm): <span id="r-val">5.0</span></label>
+            <input type="range" id="sliderR" min="2.0" max="8.0" value="5.0" step="0.1">
+        </div>
+        
+        <div class="slider-group">
+            <label>Stromdichte \( j_0 \) (Zentrum): <span id="j0-val">2.0</span></label>
+            <input type="range" id="sliderJ0" min="0.0" max="10.0" value="2.0" step="0.5">
+        </div>
+
+        <div class="slider-group">
+            <label>Stromdichte \( j(R) \) (Rand): <span id="jr-val">8.0</span></label>
+            <input type="range" id="sliderJR" min="0.0" max="10.0" value="8.0" step="0.5">
+        </div>
+
+        <div id="canvas-container"></div>
+    </div>
+
+    <script>
+        let sliderR, sliderJ0, sliderJR;
+        
+        function setup() {
+            let canvas = createCanvas(600, 300);
+            let container = document.getElementById('canvas-container');
+            resizeCanvas(container.offsetWidth - 20, 300);
+            canvas.parent('canvas-container');
+
+            sliderR = document.getElementById('sliderR');
+            sliderJ0 = document.getElementById('sliderJ0');
+            sliderJR = document.getElementById('sliderJR');
+
+            sliderR.oninput = function() { document.getElementById('r-val').innerText = this.value; }
+            sliderJ0.oninput = function() { document.getElementById('j0-val').innerText = this.value; }
+            sliderJR.oninput = function() { document.getElementById('jr-val').innerText = this.value; }
+        }
+
+        function draw() {
+            background(250);
+            
+            let R = parseFloat(sliderR.value);
+            let j0 = parseFloat(sliderJ0.value);
+            let jR = parseFloat(sliderJR.value);
+            
+            let rMax = 15; // Max X-Achse
+            let hMax = 30; // Max Y-Achse skalierung
+            
+            // Achsen
+            stroke(150); strokeWeight(1);
+            line(40, 260, width-20, 260); // X-Achse
+            line(40, 260, 40, 20); // Y-Achse
+            fill(100); noStroke(); textAlign(CENTER, CENTER);
+            text("r", width-10, 260);
+            text("H(r)", 40, 10);
+            
+            // Zeichne R-Markierung
+            let pixR = map(R, 0, rMax, 40, width-20);
+            stroke(200, 100, 100); drawingContext.setLineDash([5, 5]);
+            line(pixR, 260, pixR, 20);
+            drawingContext.setLineDash([]);
+            fill(200, 50, 50); noStroke(); text("R", pixR, 275);
+            
+            // H(r) Funktion zeichnen
+            noFill(); stroke(37, 99, 235); strokeWeight(3);
+            beginShape();
+            for (let r = 0; r <= rMax; r += 0.1) {
+                let H = 0;
+                if (r <= R) {
+                    H = (j0/2)*r + ((jR-j0)/(3*R))*r*r; // Inneres Feld
+                } else {
+                    let constPart = (j0/6) + (jR/3);
+                    H = (R*R / r) * constPart; // Äußeres Feld
+                }
+                
+                let px = map(r, 0, rMax, 40, width-20);
+                let py = map(H, 0, hMax, 260, 20);
+                
+                // Cap Y um nicht über den Graph zu zeichnen
+                if (py > 20) {
+                    vertex(px, py);
+                }
+            }
+            endShape();
+        }
+    </script>
+</body>
+</html>
