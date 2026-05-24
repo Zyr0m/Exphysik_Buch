@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktive Übungsaufgabe: Optik</title>
+    
+    <!-- Lade MathJax für Formeln -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- Lade p5.js für die interaktive Physik-Simulation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #1e293b;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+        .task-box {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 5px solid #2563eb;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .interactive-box {
+            background-color: #0f172a;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .slider-group {
+            margin: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        input[type=range] { width: 60%; }
+        #canvas-container { margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="task-box">
+        <h2 style="margin-top:0; color:#1e3a8a;">Aufgabe 4.2: Doppelspalt-Interferenz</h2>
+        <p>Ein Laserstrahl der Wellenlänge \( \lambda \) fällt senkrecht auf einen Doppelspalt mit dem Spaltabstand \( g \). Auf einem weit entfernten Schirm entsteht ein Interferenzmuster.</p>
+        <p><strong>a)</strong> Leiten Sie die Bedingung für die Lage der Intensitätsmaxima auf dem Schirm ab.<br>
+        <strong>b)</strong> <em>Interaktiv:</em> Untersuchen Sie mit der untenstehenden Simulation, wie sich das Interferenzmuster verändert, wenn Sie die Wellenlänge \( \lambda \) (Farbe des Lasers) oder den Spaltabstand \( g \) vergrößern. Was fällt Ihnen auf?</p>
+    </div>
+
+    <div class="interactive-box">
+        <h3 style="margin-top:0;">Digitale Simulation</h3>
+        
+        <div class="slider-group">
+            <label for="lambda">Wellenlänge \( \lambda \) (nm): <span id="lambda-val">500</span></label>
+            <input type="range" id="lambda" min="400" max="700" value="500">
+        </div>
+        
+        <div class="slider-group">
+            <label for="slit">Spaltabstand \( g \) (µm): <span id="slit-val">2.0</span></label>
+            <input type="range" id="slit" min="1.0" max="5.0" value="2.0" step="0.1">
+        </div>
+
+        <div id="canvas-container"></div>
+    </div>
+
+    <script>
+        let lambdaSlider, slitSlider;
+        let lambdaVal, slitVal;
+
+        function setup() {
+            let canvas = createCanvas(100, 100);
+            // Passe Canvas an Container an
+            let container = document.getElementById('canvas-container');
+            resizeCanvas(container.offsetWidth, 250);
+            canvas.parent('canvas-container');
+
+            lambdaSlider = document.getElementById('lambda');
+            slitSlider = document.getElementById('slit');
+            lambdaVal = document.getElementById('lambda-val');
+            slitVal = document.getElementById('slit-val');
+
+            // Event Listener für die Werte-Anzeige
+            lambdaSlider.oninput = function() { lambdaVal.innerHTML = this.value; }
+            slitSlider.oninput = function() { slitVal.innerHTML = this.value; }
+        }
+
+        function draw() {
+            background(20);
+            
+            let lambda = map(lambdaSlider.value, 400, 700, 0.4, 0.7); // Mikrometer für Berechnung
+            let g = parseFloat(slitSlider.value); // Mikrometer
+            
+            // Ermittle die Farbe aus der Wellenlänge (Näherung für sichtbares Licht)
+            let r=0, green=0, b=0;
+            let wv = parseInt(lambdaSlider.value);
+            if(wv >= 400 && wv < 440){ r = -(wv - 440) / (440 - 400); b = 1; }
+            else if(wv >= 440 && wv < 490){ green = (wv - 440) / (490 - 440); b = 1; }
+            else if(wv >= 490 && wv < 510){ green = 1; b = -(wv - 510) / (510 - 490); }
+            else if(wv >= 510 && wv < 580){ r = (wv - 510) / (580 - 510); green = 1; }
+            else if(wv >= 580 && wv < 645){ r = 1; green = -(wv - 645) / (645 - 580); }
+            else if(wv >= 645 && wv <= 700){ r = 1; }
+            
+            let laserColor = color(r*255, green*255, b*255);
+
+            // Zeichne das Intensitätsmuster (I ~ cos²(pi*g*sin(theta)/lambda))
+            stroke(laserColor);
+            strokeWeight(2);
+            noFill();
+            
+            beginShape();
+            for (let x = 0; x < width; x++) {
+                // Mappe Pixel-X auf Winkel theta (stark vereinfacht für Visualisierung)
+                let theta = map(x, 0, width, -0.3, 0.3); 
+                
+                // Formel für Doppelspalt-Intensität
+                let phase = (PI * g * sin(theta)) / lambda;
+                let intensity = pow(cos(phase), 2);
+                
+                // Umhüllende (Einzelspalt-Beugung) leicht angedeutet
+                let envelope = 1; 
+                if (theta !== 0) {
+                    let alpha = (PI * 0.5 * sin(theta)) / lambda; // fester Einzelspalt
+                    envelope = pow(sin(alpha) / alpha, 2);
+                }
+                
+                let totalIntensity = intensity * envelope;
+                
+                // Y-Koordinate berechnen (unten nach oben)
+                let y = height - (totalIntensity * (height - 20)) - 10;
+                vertex(x, y);
+            }
+            endShape();
+
+            // Achsen zeichnen
+            stroke(100);
+            strokeWeight(1);
+            line(0, height-10, width, height-10); // X-Achse
+            line(width/2, height-10, width/2, 10); // Symmetrieachse
+            
+            fill(150);
+            noStroke();
+            textAlign(CENTER);
+            text("Position auf dem Schirm", width/2, height - 20);
+        }
+    </script>
+</body>
+</html>
