@@ -50,9 +50,8 @@
     <div class="task-box">
         <h2 style="margin-top:0; color:#1e3a8a;">Aufgabe 18: Magnetfeld eines Leiters</h2>
         <p>Ein Leiter (Radius \( R \)) hat eine linear ansteigende Stromdichte von \( j_0 \) in der Mitte bis \( j(R) \) am Rand. Die magnetische Feldstärke ist gegeben durch:</p>
-        <p><strong>Innen (\( r \le R \)):</strong> \( H_i(r) = rac{j_0}{2}r + rac{j(R)-j_0}{3R}r^2 \)</p>
-        <p><strong>Außen (\( r \ge R \)):</strong> \( H_a(r) = rac{R^2}{r} \left[ rac{j_0}{6} + rac{j(R)}{3} 
-ight] \)</p>
+        <p><strong>Innen (\( r \le R \)):</strong> \( H_i(r) = \frac{j_0}{2}r + \frac{j(R)-j_0}{3R}r^2 \)</p>
+        <p><strong>Außen (\( r \ge R \)):</strong> \( H_a(r) = \frac{R^2}{r} \left[ \frac{j_0}{6} + \frac{j(R)}{3} \right] \)</p>
         <p><em>Untersuchen Sie in der Simulation, wie sich die Profilform (Parabel vs. Hyperbel) ändert, wenn die Randstromdichte viel größer als die innere Stromdichte wird.</em></p>
     </div>
 
@@ -60,18 +59,18 @@ ight] \)</p>
         <h3 style="margin-top:0;">Digitale Simulation: \( H(r) \)-Feld</h3>
         
         <div class="slider-group">
-            <label>Radius \( R \) (mm): <span id="r-val">5.0</span></label>
-            <input type="range" id="sliderR" min="2.0" max="8.0" value="5.0" step="0.1">
+            <label>Radius \( R \) (mm): <span id="r-val">4.2</span></label>
+            <input type="range" id="sliderR" min="2.0" max="8.0" value="4.2" step="0.1">
         </div>
         
         <div class="slider-group">
-            <label>Stromdichte \( j_0 \) (Zentrum): <span id="j0-val">2.0</span></label>
-            <input type="range" id="sliderJ0" min="0.0" max="10.0" value="2.0" step="0.5">
+            <label>Stromdichte \( j_0 \) (Zentrum): <span id="j0-val">10</span></label>
+            <input type="range" id="sliderJ0" min="0.0" max="10.0" value="10" step="0.5">
         </div>
 
         <div class="slider-group">
-            <label>Stromdichte \( j(R) \) (Rand): <span id="jr-val">8.0</span></label>
-            <input type="range" id="sliderJR" min="0.0" max="10.0" value="8.0" step="0.5">
+            <label>Stromdichte \( j(R) \) (Rand): <span id="jr-val">10</span></label>
+            <input type="range" id="sliderJR" min="0.0" max="10.0" value="10" step="0.5">
         </div>
 
         <div id="canvas-container"></div>
